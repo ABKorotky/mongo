@@ -3,7 +3,9 @@
 __author__ = 'Alexander Korotky'
 
 
+from bson.objectid import ObjectId
 from simple_mongo import MDB, MongoException
+from simple_mongo.utils import map_factory, map_dict, map_list
 
 
 __all__ = ['MongoDocument', 'MDoc']
@@ -20,7 +22,9 @@ class MDocException(MongoException):
 class MDocLoadException(MDocException):
 
     def __init__(self, _id):
-        super(MDocException, self).__init__(number=11, msg='The Mongo Document with _id=<%s> does not be loaded: collection is None' % _id)
+        super(MDocException, self).__init__(number=11,
+            msg='The Mongo Document with _id=<%s> does not be loaded: \
+            collection is None' % _id)
 
 
 class MongoDocument(MDB):
@@ -28,6 +32,7 @@ class MongoDocument(MDB):
     _collection = None
     _doc = None
     _xid = None
+    _map = None
 
     def __init__(self, **kwargs):
         self._xid = kwargs.pop('_id', None)
@@ -37,6 +42,7 @@ class MongoDocument(MDB):
         self._collection = kwargs.pop('collection', None)
         if self._collection:
             self._db = self._collection.database
+        self._map = {}
 
     def load(self):
         if not self._collection:
@@ -44,17 +50,14 @@ class MongoDocument(MDB):
         self._doc = self._collection.find_one({'_id': self._xid})
 
     def __str__(self):
-        if self._xid:
-            return u'The Mongo <%s> document from "%s.%s" collection' % (self._xid, self._db.name, self._collection.name)
-        else:
-            return u'The not initialized Mongo document '
+        return str(self._doc)
 
     def __getattr__(self, item):
         if self._doc is None:
             self.load()
         if hasattr(self._doc, item):
             return getattr(self._doc, item)
-        raise AttributeError(u'The Mongo Document has not "%s" attribute' % item)
+        raise AttributeError(u'The Mongo Document hasn`t "%s" attribute' % item)
 
 
 # short alias

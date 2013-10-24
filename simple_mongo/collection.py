@@ -2,12 +2,22 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Alexander Korotky'
 
-from simple_mongo import MDB
+from bson.objectid import ObjectId
+from simple_mongo import MDB, MongoException
 from simple_mongo.document import MDoc
 from simple_mongo.cursor import MCur
 
 
 __all__ = ['MongoCollection', 'MC']
+
+
+class MongoCollectionException(MongoException):
+
+    def __init__(self, **kwargs):
+        number = kwargs.pop('number', 10)
+        msg = kwargs.pop('msg', 'The basic Mondo Collection Exception')
+        self.args = (number, msg)
+
 
 
 class MongoCollection(MDB):
@@ -23,10 +33,7 @@ class MongoCollection(MDB):
 
     @property
     def collection(self):
-        if self._db is not None:
-            return getattr(self.db, self._collection)
-        else:
-            return None
+        return getattr(self.db, self._collection)
 
     def __len__(self):
         if self.collection is not None:
@@ -47,6 +54,19 @@ class MongoCollection(MDB):
 
     def create_empty_doc(self, **kwargs):
         return self.create_doc({}, **kwargs)
+
+    def find_doc(self, _id=None, query=None):
+        if isinstance(_id, basestring):
+            _id = ObjectId(_id)
+        if isinstance(_id, ObjectId):
+            doc = self.collection.find_one({'_id': _id})
+            return MDoc(doc=doc, collection=self.collection)
+        elif isinstance(query, dict):
+            doc = self.collection.find_one(query)
+            return MDoc(doc=doc, collection=self.collection)
+        else:
+            raise AttributeError(u'The both named parameters "_id" and "query" \
+            in Collection.find_doc() method can not be None')
 
 
 # short alias

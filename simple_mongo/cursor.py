@@ -18,7 +18,8 @@ class MCurException(MongoException):
 class MCurNotInitializedException(MCurException):
 
     def __init__(self, _id):
-        super(MCurException, self).__init__(number=31, msg='The Mongo Cursor does not initialized' % _id)
+        super(MCurException, self).__init__(number=31,
+            msg='The Mongo Cursor does not initialized' % _id)
 
 
 __all__ = ['MongoCursor', 'MCur']
