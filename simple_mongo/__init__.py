@@ -3,12 +3,8 @@
 __author__ = 'Alexander Korotky'
 
 
-from pymongo import Connection
+from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-
-#from collection import *
-#from document import *
-#from cursor import *
 
 
 class MongoException(Exception):
@@ -18,6 +14,12 @@ class MongoException(Exception):
         msg = kwargs.pop('msg', 'The basic Mondo Exception')
         self.args = (number, msg)
 
+
+class MongoConnectionException(MongoException):
+
+    def __init__(self):
+        super(MongoConnectionException, self).__init__(number=2,
+            msg=u'Unable to create Mongo Connection. You have errors.')
 
 class MongoConnection(object):
     '''
@@ -44,10 +46,18 @@ class MongoConnection(object):
     @staticmethod
     def _make_connection(**kwargs):
         try:
-            return Connection(**kwargs)
+            return MongoClient(**kwargs)
         except ConnectionFailure:
-            #TODO - insert loging functionality
-            return None
+            MongoConnection.logging()
+            raise MongoConnectionException()
+
+    @staticmethod
+    def logging():
+        '''
+        override this method for adding logging functionality
+        '''
+        pass
+
 
 # short alias
 MConn = MongoConnection
@@ -59,18 +69,32 @@ class MongoDatabase(object):
     _db = None
 
     def __init__(self, database, **kwargs):
-        self._conn = MConn(**kwargs)
+        self.make_connection(**kwargs)
         self._db = database
 
     def __str__(self):
         return u'The Mongo "%s" database' % self._db
 
+    def make_connection(self, **kwargs):
+        '''
+        override this method for change Mongo Connection class/object
+        '''
+        self._conn = MConn(**kwargs)
+
+    @property
+    def connection(self):
+        return self._conn
+
     @property
     def db(self):
-        if self._conn is not None:
-            return self._conn[self._db]
-        else:
-            return None
+        #return self._conn[self._db]
+        return getattr(self.connection, self._db)
+
+    def __getattr__(self, item):
+        if hasattr(self.db, item):
+            return getattr(self.db, item)
+        raise AttributeError(u'The Mongo Database object hasn`t "%s" attribute'\
+                             % item)
 
 
 # short alias
