@@ -4,6 +4,7 @@ __author__ = 'Alexander Korotky'
 
 from simple_mongo import MDB
 from simple_mongo.document import MDoc
+from simple_mongo.cursor import MCur
 
 
 __all__ = ['MongoCollection', 'MC']
@@ -33,8 +34,12 @@ class MongoCollection(MDB):
         else:
             return 0
 
-    def find(self, query={}, fields={}, *args, **kwargs):
-        return self.collection.find(query, fields)
+    def find(self, query={}, fields=None, *args, **kwargs):
+        if isinstance(fields, list) or isinstance(fields, tuple):
+            cursor = self.collection.find(query, fields)
+        else:
+            cursor = self.collection.find(query)
+        return MCur(cursor)
 
     def create_doc(self, doc, **kwargs):
         _id = self.collection.insert(doc, **kwargs)

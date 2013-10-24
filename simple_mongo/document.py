@@ -31,10 +31,12 @@ class MongoDocument(MDB):
 
     def __init__(self, **kwargs):
         self._xid = kwargs.pop('_id', None)
+        self._doc = kwargs.pop('doc', None)
+        if self._doc and '_id' in self._doc:
+            self._xid = self._doc['_id']
         self._collection = kwargs.pop('collection', None)
         if self._collection:
             self._db = self._collection.database
-        self._doc = None
 
     def load(self):
         if not self._collection:
