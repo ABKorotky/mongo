@@ -6,8 +6,17 @@ __author__ = 'Alexander Korotky'
 from pymongo import Connection
 from pymongo.errors import ConnectionFailure
 
-from collection import MongoCollection, MC
-from document import MongoDocument, MDoc
+#from collection import *
+#from document import *
+#from cursor import *
+
+
+class MongoException(Exception):
+
+    def __init__(self, **kwargs):
+        number = kwargs.pop('number', 1)
+        msg = kwargs.pop('msg', 'The basic Mondo Exception')
+        self.args = (number, msg)
 
 
 class MongoConnection(object):

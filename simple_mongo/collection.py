@@ -3,6 +3,10 @@
 __author__ = 'Alexander Korotky'
 
 from simple_mongo import MDB
+from simple_mongo.document import MDoc
+
+
+__all__ = ['MongoCollection', 'MC']
 
 
 class MongoCollection(MDB):
@@ -18,16 +22,26 @@ class MongoCollection(MDB):
 
     @property
     def collection(self):
-        if self.db is not None:
+        if self._db is not None:
             return getattr(self.db, self._collection)
         else:
             return None
 
     def __len__(self):
         if self.collection is not None:
-            return self.collection.find({}).count()
+            return self.collection.count()
         else:
             return 0
+
+    def find(self, query={}, fields={}, *args, **kwargs):
+        return self.collection.find(query, fields)
+
+    def create_doc(self, doc, **kwargs):
+        _id = self.collection.insert(doc, **kwargs)
+        return MDoc(_id=_id, collection=self.collection)
+
+    def create_empty_doc(self, **kwargs):
+        return self.create_doc({}, **kwargs)
 
 
 # short alias
