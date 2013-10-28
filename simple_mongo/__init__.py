@@ -2,24 +2,10 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Alexander Korotky'
 
-
+from bson.objectid import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-
-class MongoException(Exception):
-
-    def __init__(self, **kwargs):
-        number = kwargs.pop('number', 1)
-        msg = kwargs.pop('msg', 'The basic Mondo Exception')
-        self.args = (number, msg)
-
-
-class MongoConnectionException(MongoException):
-
-    def __init__(self):
-        super(MongoConnectionException, self).__init__(number=2,
-            msg=u'Unable to create Mongo Connection. You have errors.')
 
 class MongoConnection(object):
     '''
@@ -89,6 +75,14 @@ class MongoDatabase(object):
     def db(self):
         #return self._conn[self._db]
         return getattr(self.connection, self._db)
+
+    def _prepare_id(self, _id):
+        if isinstance(_id, ObjectId):
+            return _id
+        elif isinstance(_id, basestring) or isinstance(_id, int):
+            return ObjectId(_id)
+        else:
+            return None
 
     def __getattr__(self, item):
         if hasattr(self.db, item):

@@ -4,83 +4,64 @@ __author__ = 'Alexander Korotky'
 
 
 from bson.objectid import ObjectId
-from simple_mongo import MDB, MongoException
+from simple_mongo import MDB
+import exceptions
 from simple_mongo.utils import map_factory, map_dict, map_list
 
 
 __all__ = ['MongoDocument', 'MDoc']
 
 
-class MDocException(MongoException):
-
-    def __init__(self, **kwargs):
-        number = kwargs.pop('number', 10)
-        msg = kwargs.pop('msg', 'The basic Mongo Document Exception')
-        super(MDocException, self).__init__(number=number, msg=msg)
-
-
-class MDocLoadException(MDocException):
-
-    def __init__(self, _id):
-        super(MDocException, self).__init__(number=11,
-            msg='The Mongo Document with _id=<%s> does not be loaded: \
-            collection is None' % _id)
-
-
 class MongoDocument(MDB):
 
     _collection = None
     _doc = None
-    _xid = None
+    _id = None
     _map = None
 
-    def __init__(self, **kwargs):
-        _xid = kwargs.pop('_id', None)
-        if isinstance(_xid, basestring):
-            self._xid = ObjectId(_xid)
-        elif isinstance(_xid, ObjectId):
-            self._xid = _xid
-        else:
-            self._xid = None
-        self._map = {}
-        _doc = kwargs.pop('doc', None)
-        if isinstance(_doc, dict):
-            self._doc = map_dict(**_doc)
-            self._doc._map = self._map
-            if '_id' in self._doc:
-                self._xid = self._doc['_id']
+    def __init__(self, _id=None, doc=None, **kwargs):
+        if not _id:
+            if isinstance(doc, dict):
+                _id = doc.pop('_id', None)
+        self._id = self._prepare_id(_id)
+        if not self._id:
+            doc = doc or {}
+        self._prepare_doc(doc)
         self._collection = kwargs.pop('collection', None)
         if self._collection:
             self._db = self._collection.database
 
-    def load(self):
-        if not self._collection:
-            raise MDocLoadException(self._xid)
-        _doc = self._collection.find_one({'_id': self._xid})
-        if isinstance(_doc, dict):
-            self._doc = map_dict(_doc)
+    def _prepare_doc(self, doc):
+        self._map = {}
+        if isinstance(doc, dict):
+            self._doc = map_dict(**doc)
             self._doc._map = self._map
+
+    def load(self):
+        if self._id:
+            if not self._collection:
+                raise exceptions.MongoException(
+                    err_num=exceptions.COLLECTION_MISSING)
+            doc = self._collection.find_one({'_id': self._id}) or {}
+            self._prepare_doc(doc)
+        else:
+            raise exceptions.MongoException(
+                err_num=exceptions.DOCUMENT_LOAD_ERROR)
 
     def as_dict(self):
         return self._doc if self._doc else {}
 
-    def save(self):
-        if self._xid:
-            #self._doc['_id'] = ObjectId(self._doc['_id'])
-            self._collection.update({'_id': self._xid}, self._map)
-            self._map = {}
-            return True
-        else:
-            try:
-                self._collection.save(self._doc)
+    def save(self, **kwargs):
+        if self._id:
+            if self._map:
+                self._collection.update({'_id': self._id}, self._map, **kwargs)
+                self._map = {}
                 return True
-            except TypeError:
-                return False
-
-    def refresh(self):
-        self._doc = self._collection.find_one({'_id': self._xid})
-        self._map = {}
-
+            return False
+        else:
+            _id = self._collection.insert(self._doc, **kwargs)
+            self._id = self._prepare_id(_id)
+            self._map = {}
 
     def __getitem__(self, item):
         if self._doc is None:
@@ -105,7 +86,8 @@ class MongoDocument(MDB):
             self.load()
         if hasattr(self._doc, item):
             return getattr(self._doc, item)
-        raise AttributeError(u'The Mongo Document hasn`t "%s" attribute' % item)
+        raise AttributeError(u'The "%s" instance has not "%s" attribute' %
+                                 (self.__class__.__name__, item))
 
 
 # short alias

@@ -3,20 +3,12 @@
 __author__ = 'Alexander Korotky'
 
 from bson.objectid import ObjectId
-from simple_mongo import MDB, MongoException
+from simple_mongo import MDB
 from simple_mongo.document import MDoc
 from simple_mongo.cursor import MCur
 
 
 __all__ = ['MongoCollection', 'MC']
-
-
-class MongoCollectionException(MongoException):
-
-    def __init__(self, **kwargs):
-        number = kwargs.pop('number', 10)
-        msg = kwargs.pop('msg', 'The basic Mondo Collection Exception')
-        self.args = (number, msg)
 
 
 class MongoCollection(MDB):
@@ -55,23 +47,50 @@ class MongoCollection(MDB):
 
     def create_doc(self, doc, **kwargs):
         _id = self.collection.insert(doc, **kwargs)
-        return self.get_document_class()(_id=_id, collection=self.collection)
+        return self.get_document_class()(_id=_id, doc=doc,
+                                         collection=self.collection)
 
     def create_empty_doc(self, **kwargs):
         return self.create_doc({}, **kwargs)
 
-    def find_doc(self, _id=None, query=None):
-        if isinstance(_id, basestring):
-            _id = ObjectId(_id)
-        if isinstance(_id, ObjectId):
-            doc = self.collection.find_one({'_id': _id})
-            return self.get_document_class()(doc=doc, collection=self.collection)
+    def find_doc(self, _id=None, query=None, **kwargs):
+        doc = None
+        if _id:
+            doc = self.collection.find_one({'_id': self._prepare_id(_id)},
+                                           **kwargs)
         elif isinstance(query, dict):
-            doc = self.collection.find_one(query)
-            return self.get_document_class()(doc=doc, collection=self.collection)
+            doc = self.collection.find_one(query, **kwargs)
         else:
             raise AttributeError(u'The both named parameters "_id" and "query" \
             in Collection.find_doc() method can not be None')
+        if doc:
+            return self.get_document_class()(doc=doc,
+                                             collection=self.collection)
+        else:
+            return None
+
+    def find_or_create(self, _id=None, query=None, doc=None, **kwargs):
+        if not _id:
+            if isinstance(doc, dict):
+                _id = doc.get('_id', None)
+        found_doc = None
+        if _id:
+            found_doc = self.collection.find_one({'_id': self._prepare_id(_id)},
+                                                 **kwargs)
+        elif isinstance(query, dict):
+            found_doc = self.collection.find_one(query, **kwargs)
+        if found_doc:
+            return self.get_document_class()(doc=found_doc,
+                                             collection=self.collection)
+        else:
+            return self.create_doc(doc, **kwargs)
+
+    def __getattr__(self, item):
+        if hasattr(self.collection, item):
+            return getattr(self.collection, item)
+        else:
+            raise AttributeError(u'The "%s" instance has not "%s" attribute' %
+                                 (self.__class__.__name__, item))
 
 
 # short alias
