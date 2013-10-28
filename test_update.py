@@ -11,7 +11,7 @@ coll_1 = MC('simple_mongo', 'collection_1')
 
 d1 = coll_1.find_doc(query={'firstname': "Bill", 'lastname': "Doe"})
 print "d1 before change: %s" % d1
-print "d1._xid = %s" % d1._xid
+print "d1._id = %s" % d1._id
 
 d1['age'] = random.choice(range(20, 51))
 if not d1.has_key('pets'):
@@ -22,5 +22,5 @@ print "d1._map = %s" % d1._map
 print "d1 after change: %s" % d1
 
 print "save result: %s" % d1.save()
-d1.refresh()
+d1.load()
 print "d1 after refresh: %s" % d1

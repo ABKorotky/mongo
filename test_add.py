@@ -11,6 +11,8 @@ def main():
     age = range(20, 51)
     pets = ('dog', 'cat', 'fish', 'bird')
     mc = MC('simple_mongo', 'collection_1')
+    if len(mc):
+        mc.drop()
     for i in range(100):
         user = {
             'firstname': random.choice(('John', 'Adam', 'Bill', 'Bob')),

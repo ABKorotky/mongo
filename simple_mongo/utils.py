@@ -29,11 +29,14 @@ class map_dict(dict):
         self._map = {}
         self._keys = []
 
+    def __contains__(self, item):
+        return super(map_dict, self).__contains__(item)
+
     def __getitem__(self, item):
         val = super(map_dict, self).__getitem__(item)
         if not item in self._map:
             map_val = map_factory(val)
-            if map_val:
+            if map_val is not None:
                 map_val._map = self._map
                 map_val._keys = list(self._keys)
                 map_val._keys.append(item)
@@ -82,11 +85,14 @@ class map_list(list):
         self._map = {}
         self._keys = []
 
+    def __contains__(self, item):
+        return super(map_dict, self).__contains__(item)
+
     def __getitem__(self, item):
         val = super(map_list, self).__getitem__(item)
         if not self._map.has_key(item):
             map_val = map_factory(val)
-            if map_val:
+            if map_val is not None:
                 map_val._map = self._map
                 map_val._keys = list(self._keys)
                 map_val._keys.append(item)
