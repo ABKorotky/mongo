@@ -34,9 +34,12 @@ class MongoCursor(MDB):
         self._cursor = cursor
         super(MongoCursor, self).__init__(cursor.collection.database, **kwargs)
 
+    def get_document_class(self):
+        return MDoc
+
     def __getitem__(self, item):
         doc = self._cursor[item]
-        return MDoc(doc=doc, collection=self._cursor.collection)
+        return self.get_document_class()(doc=doc, collection=self._cursor.collection)
 
     def __getattr__(self, item):
         if hasattr(self._doc, item):

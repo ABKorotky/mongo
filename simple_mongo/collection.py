@@ -40,16 +40,22 @@ class MongoCollection(MDB):
         else:
             return 0
 
+    def get_document_class(self):
+        return MDoc
+
+    def get_cursor_class(self):
+        return MCur
+
     def find(self, query={}, fields=None, *args, **kwargs):
         if isinstance(fields, list) or isinstance(fields, tuple):
             cursor = self.collection.find(query, fields)
         else:
             cursor = self.collection.find(query)
-        return MCur(cursor)
+        return self.get_cursor_class()(cursor)
 
     def create_doc(self, doc, **kwargs):
         _id = self.collection.insert(doc, **kwargs)
-        return MDoc(_id=_id, collection=self.collection)
+        return self.get_document_class()(_id=_id, collection=self.collection)
 
     def create_empty_doc(self, **kwargs):
         return self.create_doc({}, **kwargs)
@@ -59,10 +65,10 @@ class MongoCollection(MDB):
             _id = ObjectId(_id)
         if isinstance(_id, ObjectId):
             doc = self.collection.find_one({'_id': _id})
-            return MDoc(doc=doc, collection=self.collection)
+            return self.get_document_class()(doc=doc, collection=self.collection)
         elif isinstance(query, dict):
             doc = self.collection.find_one(query)
-            return MDoc(doc=doc, collection=self.collection)
+            return self.get_document_class()(doc=doc, collection=self.collection)
         else:
             raise AttributeError(u'The both named parameters "_id" and "query" \
             in Collection.find_doc() method can not be None')
