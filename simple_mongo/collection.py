@@ -19,7 +19,6 @@ class MongoCollectionException(MongoException):
         self.args = (number, msg)
 
 
-
 class MongoCollection(MDB):
 
     _collection = None
