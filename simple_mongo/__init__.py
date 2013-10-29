@@ -5,6 +5,7 @@ __author__ = 'Alexander Korotky'
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+import exceptions
 
 
 class MongoConnection(object):
@@ -35,7 +36,7 @@ class MongoConnection(object):
             return MongoClient(**kwargs)
         except ConnectionFailure:
             MongoConnection.logging()
-            raise MongoConnectionException()
+            raise exceptions.MongoException(err_num=exceptions.CONNECTION_ERROR)
 
     @staticmethod
     def logging():

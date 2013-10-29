@@ -4,7 +4,7 @@ __author__ = 'Alexander Korotky'
 
 
 from simple_mongo import MDB
-from simple_mongo.document import MDoc
+from document import MDoc
 
 
 __all__ = ['MongoCursor', 'MCur']

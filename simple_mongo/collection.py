@@ -4,8 +4,8 @@ __author__ = 'Alexander Korotky'
 
 from bson.objectid import ObjectId
 from simple_mongo import MDB
-from simple_mongo.document import MDoc
-from simple_mongo.cursor import MCur
+from document import MDoc
+from cursor import MCur
 
 
 __all__ = ['MongoCollection', 'MC']

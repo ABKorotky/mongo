@@ -6,7 +6,7 @@ __author__ = 'Alexander Korotky'
 from bson.objectid import ObjectId
 from simple_mongo import MDB
 import exceptions
-from simple_mongo.utils import map_factory, map_dict, map_list
+from utils import map_dict
 
 
 __all__ = ['MongoDocument', 'MDoc']
