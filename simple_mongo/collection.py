@@ -3,7 +3,7 @@
 __author__ = 'Alexander Korotky'
 
 from bson.objectid import ObjectId
-from simple_mongo import MDB
+from simple_mongo import MongoDatabase
 from document import MDoc
 from cursor import MCur
 
@@ -11,7 +11,7 @@ from cursor import MCur
 __all__ = ['MongoCollection', 'MC']
 
 
-class MongoCollection(MDB):
+class MongoCollection(MongoDatabase):
 
     _collection = None
 

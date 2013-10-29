@@ -3,51 +3,8 @@
 __author__ = 'Alexander Korotky'
 
 from bson.objectid import ObjectId
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
+from connection import MongoClientConnection
 import exceptions
-
-
-class MongoConnection(object):
-    '''
-    Wrapper class for realize 'PseudoSingleton' pattern.
-    If we pass
-        conn_obj = MongoConnection()
-    we get a really Singleton.
-    But if we pass
-        conn_obj = MongoConnection(new_connection=True)
-    we get a new different class.
-    '''
-
-    _conn = None
-
-    def __new__(cls, *args, **kwargs):
-        is_new = kwargs.pop('new_connection', False)
-        if is_new:
-            return cls._make_connection(**kwargs)
-        else:
-            if cls._conn is None:
-                cls._conn = cls._make_connection(**kwargs)
-            return cls._conn
-
-    @staticmethod
-    def _make_connection(**kwargs):
-        try:
-            return MongoClient(**kwargs)
-        except ConnectionFailure:
-            MongoConnection.logging()
-            raise exceptions.MongoException(err_num=exceptions.CONNECTION_ERROR)
-
-    @staticmethod
-    def logging():
-        '''
-        override this method for adding logging functionality
-        '''
-        pass
-
-
-# short alias
-MConn = MongoConnection
 
 
 class MongoDatabase(object):
@@ -56,17 +13,17 @@ class MongoDatabase(object):
     _db = None
 
     def __init__(self, database, **kwargs):
-        self.make_connection(**kwargs)
+        self.use_connection(**kwargs)
         self._db = database
 
     def __str__(self):
         return u'The Mongo "%s" database' % self._db
 
-    def make_connection(self, **kwargs):
+    def use_connection(self, **kwargs):
         '''
         override this method for change Mongo Connection class/object
         '''
-        self._conn = MConn(**kwargs)
+        self._conn = MongoClientConnection(**kwargs)
 
     @property
     def connection(self):
