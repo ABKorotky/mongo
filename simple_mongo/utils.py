@@ -57,7 +57,7 @@ class map_dict(dict):
         super(map_dict, self).__setitem__(key, value)
         if OP_SET not in self._map:
             self._map[OP_SET] = {}
-        self._map[OP_SET].update({self._build_map_key(key): type(value)(value)})
+        self._map[OP_SET].update({self._build_map_key(key): value})
 
     def __delitem__(self, key):
         super(map_dict, self).__delitem__(key)
@@ -113,7 +113,7 @@ class map_list(list):
         super(map_list, self).__setitem__(key, value)
         if OP_SET not in self._map:
             self._map[OP_SET] = {}
-        self._map[OP_SET].update({self._build_map_key(key): type(value)(value)})
+        self._map[OP_SET].update({self._build_map_key(key): value})
 
     def __delitem__(self, key):
         k = self._build_map_key(None)
