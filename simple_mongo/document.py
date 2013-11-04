@@ -3,8 +3,7 @@
 __author__ = 'Alexander Korotky'
 
 
-from bson.objectid import ObjectId
-from simple_mongo import MDB
+from simple_mongo import MongoDatabase
 import exceptions
 from utils import map_dict
 
@@ -12,7 +11,7 @@ from utils import map_dict
 __all__ = ['MongoDocument', 'MDoc']
 
 
-class MongoDocument(MDB):
+class MongoDocument(MongoDatabase):
 
     _collection = None
     _doc = None
@@ -55,13 +54,13 @@ class MongoDocument(MDB):
         if self._id:
             if self._map:
                 self._collection.update({'_id': self._id}, self._map, **kwargs)
-                self._map = {}
+                self._map.clear()
                 return True
             return False
         else:
             _id = self._collection.insert(self._doc, **kwargs)
             self._id = self._prepare_id(_id)
-            self._map = {}
+            self._map.clear()
 
     def __getitem__(self, item):
         if self._doc is None:

@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Alexander Korotky'
 
-from bson.objectid import ObjectId
+
 from simple_mongo import MongoDatabase
-from document import MDoc
-from cursor import MCur
+from document import MongoDocument
+from cursor import MongoCursor
 
 
 __all__ = ['MongoCollection', 'MC']
@@ -33,10 +33,10 @@ class MongoCollection(MongoDatabase):
             return 0
 
     def get_document_class(self):
-        return MDoc
+        return MongoDocument
 
     def get_cursor_class(self):
-        return MCur
+        return MongoCursor
 
     def find(self, query={}, fields=None, *args, **kwargs):
         if isinstance(fields, list) or isinstance(fields, tuple):
@@ -84,6 +84,17 @@ class MongoCollection(MongoDatabase):
                                              collection=self.collection)
         else:
             return self.create_doc(doc, **kwargs)
+
+    def remove_doc(self, _id=None, query=None, **kwargs):
+        if _id:
+            self.collection.remove({'_id': self._prepare_id(_id)}, **kwargs)
+            return True
+        elif isinstance(query, dict):
+            self.collection.remove(query, **kwargs)
+            return True
+        else:
+            raise AttributeError(u'The both named parameters "_id" and "query" \
+            in Collection.find_doc() method can not be None')
 
     def __getattr__(self, item):
         if hasattr(self.collection, item):

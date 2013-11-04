@@ -3,14 +3,14 @@
 __author__ = 'Alexander Korotky'
 
 
-from simple_mongo import MDB
-from document import MDoc
+from simple_mongo import MongoDatabase
+from document import MongoDocument
 
 
 __all__ = ['MongoCursor', 'MCur']
 
 
-class MongoCursor(MDB):
+class MongoCursor(MongoDatabase):
     _cursor = None
     _collection = None
 
@@ -22,7 +22,7 @@ class MongoCursor(MDB):
         super(MongoCursor, self).__init__(cursor.collection.database, **kwargs)
 
     def get_document_class(self):
-        return MDoc
+        return MongoDocument
 
     def __getitem__(self, item):
         doc = self._cursor[item]
